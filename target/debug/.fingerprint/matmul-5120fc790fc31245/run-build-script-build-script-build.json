@@ -1,1 +1,0 @@
-{"rustc":2833068300835136146,"features":"","declared_features":"","target":0,"profile":0,"path":0,"deps":[[11527558361573153209,"build_script_build",false,5543529032284836292]],"local":[{"RerunIfChanged":{"output":"debug/build/matmul-5120fc790fc31245/output","paths":["build.rs","./src/matrix_par.rs"]}}],"rustflags":[],"config":0,"compile_kind":0}

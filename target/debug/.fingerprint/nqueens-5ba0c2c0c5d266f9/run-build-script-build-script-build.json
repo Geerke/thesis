@@ -1,1 +1,0 @@
-{"rustc":2833068300835136146,"features":"","declared_features":"","target":0,"profile":0,"path":0,"deps":[[16558356433452394439,"build_script_build",false,8123569150040015136]],"local":[{"RerunIfChanged":{"output":"debug/build/nqueens-5ba0c2c0c5d266f9/output","paths":["build.rs","./src/main.rs"]}}],"rustflags":[],"config":0,"compile_kind":0}
