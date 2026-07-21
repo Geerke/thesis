@@ -1,0 +1,10 @@
+# started on Sun Jul 19 12:21:59 2026
+
+
+ Performance counter stats for './target/release/matmul velvet 8 16' (5 runs):
+
+         4,837,241      ls_refills_from_sys.ls_mabresp_lcl_dram:u                                     ( +-  1.05% )
+         4,168,943      ls_refills_from_sys.ls_mabresp_rmt_dram:u                                     ( +-  2.55% )
+
+           1.65637 +- 0.00602 seconds time elapsed  ( +-  0.36% )
+

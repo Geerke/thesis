@@ -1,0 +1,10 @@
+# started on Sun Jul 19 12:22:07 2026
+
+
+ Performance counter stats for './target/release/nqueens velvet 15' (5 runs):
+
+             2,226      ls_refills_from_sys.ls_mabresp_lcl_dram:u                                     ( +- 11.11% )
+             2,452      ls_refills_from_sys.ls_mabresp_rmt_dram:u                                     ( +-  8.71% )
+
+            1.0707 +- 0.0112 seconds time elapsed  ( +-  1.04% )
+

@@ -1,0 +1,1 @@
+{"rustc":2833068300835136146,"features":"","declared_features":"","target":0,"profile":0,"path":0,"deps":[[1356795261257586722,"build_script_build",false,4758674559168363185]],"local":[{"RerunIfChanged":{"output":"release/build/tsp-e2b00b100c7b01a4/output","paths":["build.rs","./src/main.rs"]}}],"rustflags":[],"config":0,"compile_kind":0}

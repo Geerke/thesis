@@ -1,0 +1,10 @@
+# started on Sun Jul 19 12:26:36 2026
+
+
+ Performance counter stats for './target/release/fib velvet 50' (5 runs):
+
+             1,443      ls_refills_from_sys.ls_mabresp_lcl_dram:u                                     ( +-  6.96% )
+               967      ls_refills_from_sys.ls_mabresp_rmt_dram:u                                     ( +-  2.96% )
+
+             1.883 +- 0.185 seconds time elapsed  ( +-  9.82% )
+

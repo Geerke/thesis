@@ -1,0 +1,14 @@
+# started on Wed Jul 15 14:55:11 2026
+
+
+ Performance counter stats for './target/release/fib velvet 50' (5 runs):
+
+         1,044,782      cache-references:u                                            ( +-  8.90% )
+           257,335      cache-misses:u            #   19.741 % of all cache refs      ( +-  8.43% )
+   <not supported>      LLC-loads:u                                                 
+   <not supported>      LLC-load-misses:u                                           
+   <not supported>      LLC-stores:u                                                
+   <not supported>      LLC-store-misses:u                                          
+
+             1.872 +- 0.182 seconds time elapsed  ( +-  9.70% )
+

@@ -1,0 +1,14 @@
+# started on Wed Jul 15 14:52:40 2026
+
+
+ Performance counter stats for './target/release/bh velvet /var/scratch/abliokou/bh_data/two_plummers_1M.txt AA_SLURM_OUT/BH/output.2699248 5' (5 runs):
+
+    10,155,260,519      cache-references:u                                            ( +-  0.27% )
+     1,086,759,866      cache-misses:u            #   10.662 % of all cache refs      ( +-  0.88% )
+   <not supported>      LLC-loads:u                                                 
+   <not supported>      LLC-load-misses:u                                           
+   <not supported>      LLC-stores:u                                                
+   <not supported>      LLC-store-misses:u                                          
+
+            11.033 +- 0.137 seconds time elapsed  ( +-  1.24% )
+

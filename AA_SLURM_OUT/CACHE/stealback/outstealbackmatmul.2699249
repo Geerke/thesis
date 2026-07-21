@@ -1,0 +1,14 @@
+# started on Wed Jul 15 14:55:48 2026
+
+
+ Performance counter stats for './target/release/matmul velvet 8 16' (5 runs):
+
+     1,295,296,401      cache-references:u                                            ( +-  0.32% )
+       143,196,557      cache-misses:u            #   10.993 % of all cache refs      ( +-  1.88% )
+   <not supported>      LLC-loads:u                                                 
+   <not supported>      LLC-load-misses:u                                           
+   <not supported>      LLC-stores:u                                                
+   <not supported>      LLC-store-misses:u                                          
+
+             1.682 +- 0.135 seconds time elapsed  ( +-  8.05% )
+

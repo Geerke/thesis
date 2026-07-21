@@ -1,0 +1,14 @@
+# started on Sun Jul  5 12:11:02 2026
+
+
+ Performance counter stats for './target/release/tsp velvet 19 42' (5 runs):
+
+        18,227,944      cache-references:u                                            ( +- 77.56% )
+         4,102,160      cache-misses:u            #    8.313 % of all cache refs      ( +- 21.09% )
+   <not supported>      LLC-loads:u                                                 
+   <not supported>      LLC-load-misses:u                                           
+   <not supported>      LLC-stores:u                                                
+   <not supported>      LLC-store-misses:u                                          
+
+             4.225 +- 0.237 seconds time elapsed  ( +-  5.61% )
+

@@ -1,0 +1,27 @@
+[package]
+name = "bh"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+velvet = { path = "../../velvet", default-features = false, optional = false  }
+core_affinity = "0.8.3"
+
+[build-dependencies]
+velvet = { path = "../../velvet", default-features = false }
+rayon = {version = "1.11.0", optional = true}
+
+[features]
+default = ["safe"]
+safe = ["velvet/safe"]
+crossbeam = ["velvet/crossbeam"]
+unsafe = ["velvet/unsafe"]
+stats = ["velvet/stats"]
+stealbackhash = ["velvet/stealbackhash"]
+stealbackvector = ["velvet/stealbackvector"]
+topology = ["velvet/topology"]
+priority = ["velvet/priority"]
+hashing = ["velvet/hashing"]
+register = ["velvet/register"]
+test_direct_rec = []
+mugging = ["velvet/mugging"]

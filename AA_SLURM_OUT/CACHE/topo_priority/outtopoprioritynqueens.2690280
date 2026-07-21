@@ -1,0 +1,14 @@
+# started on Sun Jul  5 12:11:34 2026
+
+
+ Performance counter stats for './target/release/nqueens velvet 15' (5 runs):
+
+         5,229,027      cache-references:u                                            ( +- 39.28% )
+         1,334,037      cache-misses:u            #   12.011 % of all cache refs      ( +-  6.76% )
+   <not supported>      LLC-loads:u                                                 
+   <not supported>      LLC-load-misses:u                                           
+   <not supported>      LLC-stores:u                                                
+   <not supported>      LLC-store-misses:u                                          
+
+             1.218 +- 0.140 seconds time elapsed  ( +- 11.48% )
+

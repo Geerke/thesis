@@ -1,0 +1,10 @@
+# started on Sun Jul 19 12:27:29 2026
+
+
+ Performance counter stats for './target/release/bh velvet /var/scratch/abliokou/bh_data/two_plummers_1M.txt AA_SLURM_OUT/BH/output.2700088 5' (5 runs):
+
+        46,373,621      ls_refills_from_sys.ls_mabresp_lcl_dram:u                                     ( +-  2.96% )
+        16,291,665      ls_refills_from_sys.ls_mabresp_rmt_dram:u                                     ( +-  9.45% )
+
+            11.023 +- 0.167 seconds time elapsed  ( +-  1.52% )
+

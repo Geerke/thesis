@@ -1,0 +1,14 @@
+# started on Wed Jul 15 14:51:57 2026
+
+
+ Performance counter stats for './target/release/adapint velvet 0.0 800000 0.0001' (5 runs):
+
+         2,843,732      cache-references:u                                            ( +- 75.91% )
+           183,877      cache-misses:u            #    4.329 % of all cache refs      ( +- 73.90% )
+   <not supported>      LLC-loads:u                                                 
+   <not supported>      LLC-load-misses:u                                           
+   <not supported>      LLC-stores:u                                                
+   <not supported>      LLC-store-misses:u                                          
+
+             0.894 +- 0.110 seconds time elapsed  ( +- 12.29% )
+

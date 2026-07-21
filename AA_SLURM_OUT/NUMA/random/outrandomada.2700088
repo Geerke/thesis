@@ -1,0 +1,10 @@
+# started on Sun Jul 19 12:26:47 2026
+
+
+ Performance counter stats for './target/release/adapint velvet 0.0 800000 0.0001' (5 runs):
+
+             1,084      ls_refills_from_sys.ls_mabresp_lcl_dram:u                                     ( +- 15.61% )
+               854      ls_refills_from_sys.ls_mabresp_rmt_dram:u                                     ( +- 11.76% )
+
+             0.897 +- 0.109 seconds time elapsed  ( +- 12.15% )
+

@@ -1,0 +1,10 @@
+# started on Sun Jul 19 12:26:52 2026
+
+
+ Performance counter stats for './target/release/tsp velvet 19 42' (5 runs):
+
+            66,750      ls_refills_from_sys.ls_mabresp_lcl_dram:u                                     ( +- 15.17% )
+            76,392      ls_refills_from_sys.ls_mabresp_rmt_dram:u                                     ( +- 15.52% )
+
+             4.130 +- 0.138 seconds time elapsed  ( +-  3.34% )
+
