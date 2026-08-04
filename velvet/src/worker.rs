@@ -42,7 +42,7 @@ impl <T: Identifiable + Send + 'static> VelvetWorker <T> {
         victims: Arc<VictimRegistry>) -> Self {
         let queue = Arc::new(VelvetQueue::<T>::new(queue_size, 
             #[cfg(any(feature = "register", feature = "hashing_register"))]
-            victims, 
+            victims.clone(), 
             #[cfg(any(feature = "register"))]
             id)
         );

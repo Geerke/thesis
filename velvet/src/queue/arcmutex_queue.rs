@@ -66,8 +66,11 @@ impl <T: Identifiable> Queue<T> {
 
    #[cfg(feature = "register")]
      pub(crate) fn push(&self, frame: T) {
-        self.queue.lock().unwrap().push_back(frame);
-        let old = self.len.fetch_add(1, Ordering::AcqRel);
+        let old = {
+            let mut q = self.queue.lock().unwrap();
+            q.push_back(frame);
+            self.len.fetch_add(1, Ordering::AcqRel)
+        };
          if old >= HIGH-1{
             if self.registered
                 .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
@@ -100,8 +103,11 @@ impl <T: Identifiable> Queue<T> {
         
         match frame{
             Some(frame) => {
-            let old = self.len.fetch_sub(1, Ordering::AcqRel);
-               if old <= LOW {
+                let old = {
+                    let _q = self.queue.lock().unwrap(); 
+                    self.len.fetch_sub(1, Ordering::AcqRel)
+                };
+                if old <= LOW {
                     if self.registered
                         .compare_exchange(true, false, Ordering::AcqRel, Ordering::Acquire)
                         .is_ok()
@@ -115,7 +121,10 @@ impl <T: Identifiable> Queue<T> {
             None => {
                 loop {
                     if let Some(returnslot) = self.get_returnslot(uid) {
-                        let old = self.len.fetch_sub(1, Ordering::AcqRel);
+                        let old = {
+                            let _q = self.queue.lock().unwrap(); 
+                            self.len.fetch_sub(1, Ordering::AcqRel)
+                        };
                         if old <= LOW {
                             if self.registered
                                 .compare_exchange(true, false, Ordering::AcqRel, Ordering::Acquire)
@@ -151,7 +160,10 @@ impl <T: Identifiable> Queue<T> {
 		if let Some(ref job) = stolen {
 			let id = job.get_id();
 			self.stolen.lock().expect("failed to lock when stealing").insert(id, trace);
-            let old = self.len.fetch_sub(1, Ordering::AcqRel);
+            let old = {
+                let _q = self.queue.lock().unwrap(); 
+                self.len.fetch_sub(1, Ordering::AcqRel)
+            };
              if old <= LOW {
                 if self.registered
                     .compare_exchange(true, false, Ordering::AcqRel, Ordering::Acquire)

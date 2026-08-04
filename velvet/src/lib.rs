@@ -70,7 +70,7 @@ pub struct RuntimeStats {
     stolen_jobs_other: usize,
     push_waiting_other: Duration,
     pop_waiting_other: Duration,
-    
+    #[cfg(any(feature = "register", feature = "hashing_register"))]
     registry: Arc<VictimRegistry>
 
 }
@@ -175,6 +175,7 @@ impl RuntimeStats {
 
 
     fn dump(&self, id: usize) {
+        #[cfg(any(feature = "register", feature = "hashing_register"))]
         eprintln!("{},{},{},{},{},{:?},{:?},{:?},{:?},{:?},{:?},{:?},{:?},{},{},{},{},{},{}, {:?}",
                 id,
                 self.total_steal_attempts,
@@ -197,6 +198,29 @@ impl RuntimeStats {
                 self.sync_loop_iters_other,
                 self.registry.total_busy_time()
             );
+        #[cfg(not(any(feature = "register", feature = "hashing_register")))]
+         eprintln!("{},{},{},{},{},{:?},{:?},{:?},{:?},{:?},{:?},{:?},{:?},{},{},{},{},{},{}",
+                id,
+                self.total_steal_attempts,
+                self.successful_steals,
+                self.attempts_before_first_success,
+                self.succesful_steal_backs,
+                self.work_time,
+                self.steal_setup_time,
+                self.steal_waiting,
+                self.pop_waiting,
+                self.pop_waiting_other,
+                self.push_waiting,
+                self.push_waiting_other,
+                self.other_time,
+                self.spawns,
+                self.spawn_other,
+                self.total_stolen_jobs,
+                self.stolen_jobs_other,
+                self.sync_loop_iters,
+                self.sync_loop_iters_other,
+            );
+        
     }
 }
 

@@ -16,6 +16,8 @@ output_file_hashing="AA_SLURM_OUT/FIB/outhashing.$SLURM_JOB_ID"
 output_file_priority="AA_SLURM_OUT/FIB/outpriority.$SLURM_JOB_ID"
 output_file_registry="AA_SLURM_OUT/FIB/outregistry.$SLURM_JOB_ID"
 output_file_mugging="AA_SLURM_OUT/FIB/outmugging.$SLURM_JOB_ID"
+output_file_stealbackmugging="AA_SLURM_OUT/FIB/outstealbackmugging.$SLURM_JOB_ID"
+
 
 
 dump_file="AA_SLURM_OUT/FIB/err.$SLURM_JOB_ID"
@@ -188,11 +190,33 @@ if [ "$1" = "hashing" ]; then
 
 fi
 
-if [ "$1" = "mugging" ]; then
-    echo "version,num_workers,time_secs" > $output_file_mugging
+if [ "$1" = "stealback_mugging" ]; then
+    echo "version,num_workers,time_secs" > $output_file_stealbackmugging
     VERSION="stealbackvector"
 
     cargo build --release --no-default-features --features "safe stealbackvector mugging" -p fib
+    for workers in 1 2 4 8 12 16 20 24 28 32
+    do
+        export VELVET_WORKERS=$workers
+
+        for iter in {1..6}; do
+            $executabe_file velvet $N 2>> "$dump_file" \
+            | awk -v v="$VERSION" -v w="$workers" '
+                /TIME:/ {
+                    time=$NF
+                    print v "," w "," time
+                }
+            ' >> "$output_file_stealbackmugging"
+        done
+    done
+
+fi
+
+if [ "$1" = "mugging" ]; then
+    echo "version,num_workers,time_secs" > $output_file_mugging
+    VERSION="mugging"
+
+    cargo build --release --no-default-features --features "safe  mugging" -p fib
     for workers in 1 2 4 8 12 16 20 24 28 32
     do
         export VELVET_WORKERS=$workers
@@ -209,4 +233,3 @@ if [ "$1" = "mugging" ]; then
     done
 
 fi
-

@@ -299,45 +299,83 @@ if [ "$1" = "mugging" ]; then
     output_nqueens="AA_SLURM_OUT/CACHE/outmuggingnqueens.$SLURM_JOB_ID"
     output_bh="AA_SLURM_OUT/CACHE/outmuggingbh.$SLURM_JOB_ID"
 
-    cargo build --release --no-default-features --features "safe  stealbackvector mugging" -p fib
+    cargo build --release --no-default-features --features "safe  mugging" -p fib
     perf stat --repeat 5 -e cache-references,cache-misses,LLC-loads,LLC-load-misses,LLC-stores,LLC-store-misses \
      -o $output_fib \
     $executabe_file_fib velvet 50 
 
     
-    cargo build --release --no-default-features --features "safe  stealbackvector mugging" -p adapint
+    cargo build --release --no-default-features --features "safe mugging" -p adapint
     perf stat --repeat 5 -e cache-references,cache-misses,LLC-loads,LLC-load-misses,LLC-stores,LLC-store-misses \
     -o $output_ada \
     $executabe_file_ada velvet 0.0 800000 0.0001 
 
-    cargo build --release --no-default-features --features "safe  stealbackvector mugging" -p tsp
+    cargo build --release --no-default-features --features "safe mugging" -p tsp
     perf stat --repeat 5 -e cache-references,cache-misses,LLC-loads,LLC-load-misses,LLC-stores,LLC-store-misses \
     -o $output_tsp \
     $executabe_file_tsp velvet 19 42 
 
 
-    cargo build --release --no-default-features --features "safe  stealbackvector mugging" -p matmul
+    cargo build --release --no-default-features --features "safe mugging" -p matmul
     perf stat --repeat 5 -e cache-references,cache-misses,LLC-loads,LLC-load-misses,LLC-stores,LLC-store-misses \
     -o $output_matmul \
     $executabe_file_matmul velvet 8 16
 
 
-    cargo build --release --no-default-features --features "safe  stealbackvector mugging" -p nqueens
+    cargo build --release --no-default-features --features "safe mugging" -p nqueens
     perf stat --repeat 5 -e cache-references,cache-misses,LLC-loads,LLC-load-misses,LLC-stores,LLC-store-misses \
     -o $output_nqueens \
     $executabe_file_nqueens velvet 15
 
 
 
-    cargo build --release --no-default-features --features "safe stealbackvector mugging" -p bh
+    cargo build --release --no-default-features --features "safe mugging" -p bh
     perf stat --repeat 5 -e cache-references,cache-misses,LLC-loads,LLC-load-misses,LLC-stores,LLC-store-misses \
     -o $output_bh \
     $executabe_file_bh velvet "/var/scratch/abliokou/bh_data/two_plummers_1M.txt" "AA_SLURM_OUT/BH/output.$SLURM_JOB_ID" 5
 fi
-# if [ "$1" = "register" ]; then
-#     output_bh="AA_SLURM_OUT/CACHE/outregisterbh.$SLURM_JOB_ID"
-#     export VELVET_WORKERS=2
-#     cargo build --release --no-default-features --features "safe register" -p bh
-#     perf stat -e cycles,instructions,cache-misses,cache-references,task-clock   -o $output_bh \
-#     $executabe_file_bh velvet "/var/scratch/abliokou/bh_data/two_plummers_1M.txt" "AA_SLURM_OUT/BH/output.$SLURM_JOB_ID" 5
-# fi 
+
+
+if [ "$1" = "register" ]; then
+   output_fib="AA_SLURM_OUT/CACHE/outregisterfib.$SLURM_JOB_ID"
+    output_ada="AA_SLURM_OUT/CACHE/outregisterada.$SLURM_JOB_ID"
+    output_tsp="AA_SLURM_OUT/CACHE/outregistertsp.$SLURM_JOB_ID"
+    output_matmul="AA_SLURM_OUT/CACHE/outregistermatmul.$SLURM_JOB_ID"
+    output_nqueens="AA_SLURM_OUT/CACHE/outregisternqueens.$SLURM_JOB_ID"
+    output_bh="AA_SLURM_OUT/CACHE/outregisterbh.$SLURM_JOB_ID"
+
+    cargo build --release --no-default-features --features "safe register" -p fib
+    perf stat --repeat 5 -e cache-references,cache-misses,LLC-loads,LLC-load-misses,LLC-stores,LLC-store-misses \
+     -o $output_fib \
+    $executabe_file_fib velvet 50 
+
+    
+    cargo build --release --no-default-features --features "safe register" -p adapint
+    perf stat --repeat 5 -e cache-references,cache-misses,LLC-loads,LLC-load-misses,LLC-stores,LLC-store-misses \
+    -o $output_ada \
+    $executabe_file_ada velvet 0.0 800000 0.0001 
+
+    cargo build --release --no-default-features --features "safe register" -p tsp
+    perf stat --repeat 5 -e cache-references,cache-misses,LLC-loads,LLC-load-misses,LLC-stores,LLC-store-misses \
+    -o $output_tsp \
+    $executabe_file_tsp velvet 19 42 
+
+
+    cargo build --release --no-default-features --features "safe register" -p matmul
+    perf stat --repeat 5 -e cache-references,cache-misses,LLC-loads,LLC-load-misses,LLC-stores,LLC-store-misses \
+    -o $output_matmul \
+    $executabe_file_matmul velvet 8 16
+
+
+    cargo build --release --no-default-features --features "safe register" -p nqueens
+    perf stat --repeat 5 -e cache-references,cache-misses,LLC-loads,LLC-load-misses,LLC-stores,LLC-store-misses \
+    -o $output_nqueens \
+    $executabe_file_nqueens velvet 15
+
+
+
+    cargo build --release --no-default-features --features "safe mugging" -p bh
+    perf stat --repeat 5 -e cache-references,cache-misses,LLC-loads,LLC-load-misses,LLC-stores,LLC-store-misses \
+    -o $output_bh \
+    $executabe_file_bh velvet "/var/scratch/abliokou/bh_data/two_plummers_1M.txt" "AA_SLURM_OUT/BH/output.$SLURM_JOB_ID" 5
+fi 

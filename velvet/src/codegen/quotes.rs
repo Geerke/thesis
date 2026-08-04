@@ -589,30 +589,80 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
                 }
                  n = worker.get_random(len);
             }
+
+           
                                
             for _ in 0..len{
-                let maybe_frame = worker.stealers[n].steal(__Frame__::Stolen(result_slot.clone()));  
-        
-                #[cfg(feature = "stats")]
-                worker.add_steal_attempts(1);
-               
-               
-              
-                if let Some(frame) = maybe_frame {
-                    #[cfg(feature = "stats")]
-                    worker.add_steal_waittime(steal_start.elapsed());
+                #[cfg(feature = "mugging")]
+                {
+                    let stealer = worker.stealers[n].clone();
+                    let mut amount_task = stealer.length();
 
-                    match frame {
-                        #specific_steal_logic
-                    }
-                    
-                     #[cfg(feature = "stats")]
-                     {
-                        worker.add_successful_steals(1);
-                     }                    
-                    return;
+                    #[cfg(feature = "stats")]
+                    let mut first = true;
+
+                    for _task in 0..amount_task{
+                        let result_slot_mugging = std::sync::Arc::new(std::sync::Mutex::new(None));
+                        let mut lock = result_slot_mugging.lock().unwrap();
+                        
+                        let maybe_frame =
+                            stealer.steal(__Frame__::Stolen(result_slot_mugging.clone()));
+                        
+                        #[cfg(feature = "stats")]
+                        worker.add_steal_attempts(1);
+                        if let Some(frame) = maybe_frame {
+                            
+                            #[cfg(feature = "stats")]
+                            {
+                                if first{
+                                    worker.add_steal_waittime(steal_start.elapsed());
+                                }
+                            }
+                            
+                            match frame {
+                                #specific_steal_logic
+                            }
+
+                            #[cfg(feature = "stats")]{
+                                worker.add_successful_steals(1);
+                                if first{
+                                    first = false;
+                                }
+                            }
+    
+                        }
+                            amount_task = stealer.length();   
+                        }
+
+                        n = (n+1)%len; 
                 }
-                n = (n+1)%len; 
+
+                #[cfg(not(feature = "mugging"))]
+                { 
+                    let maybe_frame = worker.stealers[n].steal(__Frame__::Stolen(result_slot.clone()));  
+            
+                    #[cfg(feature = "stats")]{}
+                    worker.add_steal_attempts(1);
+                
+                
+                
+                    if let Some(frame) = maybe_frame {
+                        #[cfg(feature = "stats")]
+                        worker.add_steal_waittime(steal_start.elapsed());
+                    
+
+                        match frame {
+                            #specific_steal_logic
+                        }
+                        
+                        #[cfg(feature = "stats")]
+                        {
+                            worker.add_successful_steals(1);
+                        }                    
+                        return;
+                    }
+                    n = (n+1)%len;
+                } 
             }
 
             #[cfg(feature = "stats")]
