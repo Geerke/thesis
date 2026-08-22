@@ -70,8 +70,9 @@ impl <T: Identifiable> Queue<T> {
             let mut q = self.queue.lock().unwrap();
             q.push_back(frame);
             self.len.fetch_add(1, Ordering::AcqRel)
-        };
+        }; //add frame to workqueue, while holding the queue's lock get and change old size of register 
          if old >= HIGH-1{
+            //only register if queue is not registered
             if self.registered
                 .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
                 .is_ok(){
@@ -106,8 +107,9 @@ impl <T: Identifiable> Queue<T> {
                 let old = {
                     let _q = self.queue.lock().unwrap(); 
                     self.len.fetch_sub(1, Ordering::AcqRel)
-                };
+                }; //Get old size of register
                 if old <= LOW {
+                    //only unregister if queue is registered
                     if self.registered
                         .compare_exchange(true, false, Ordering::AcqRel, Ordering::Acquire)
                         .is_ok()
@@ -124,8 +126,9 @@ impl <T: Identifiable> Queue<T> {
                         let old = {
                             let _q = self.queue.lock().unwrap(); 
                             self.len.fetch_sub(1, Ordering::AcqRel)
-                        };
+                        }; //Get old size of register
                         if old <= LOW {
+                            //only unregister if queue is registered
                             if self.registered
                                 .compare_exchange(true, false, Ordering::AcqRel, Ordering::Acquire)
                                 .is_ok()
@@ -163,8 +166,9 @@ impl <T: Identifiable> Queue<T> {
             let old = {
                 let _q = self.queue.lock().unwrap(); 
                 self.len.fetch_sub(1, Ordering::AcqRel)
-            };
+            }; //Get old size of register
              if old <= LOW {
+                //only unregister if queue is registered
                 if self.registered
                     .compare_exchange(true, false, Ordering::AcqRel, Ordering::Acquire)
                     .is_ok()
@@ -210,19 +214,22 @@ impl <T: Identifiable> Queue<T> {
         }
     }
     
+   
     #[cfg(feature = "stealbackhash")]
     pub(crate) fn get_stolen(&self) -> Option<usize>{
         self.stealers.lock().expect("failed to lock when stealing").iter().next().copied()
-    }
+    }//Return potential victim from stealers queue
+    
     #[cfg(feature = "stealbackhash")]
     pub(crate) fn get_stealers_length(&self) -> usize{
         self.stealers.lock().expect("failed to lock when stealing").len()
     }
-
+     
+    
      #[cfg(feature = "stealbackvector")]
     pub(crate) fn get_stolen(&self) -> Option<usize>{
         self.stealers.lock().expect("failed to lock when stealing").pop_back()
-    }
+    } //Return potential victim from stealers queue
      
     #[cfg(any(feature = "register", feature = "hashing_register"))]
      pub fn get_victim(&self, self_id: usize) -> Option<usize>{
@@ -272,30 +279,33 @@ impl <T: Identifiable> Stealer<T>  {
     pub fn get_owner(&self) -> Option<usize>{
         self.task_owner
     }
+    
+    
     #[cfg(feature = "topology")]
     pub fn ready(&self) -> bool{
         if self.queue.len() < 1{
             return false
         }
         true
-    }
+    } //Return true if enough victims left in queue, otherwise false
     
     #[cfg(any(feature = "topology", feature = "priority", feature = "mugging"))]
     pub fn length(&self) -> usize{
         self.queue.len()
     }
 
-    //add the ID of a stealer that successfully stole from queue
+   
     #[cfg(any(feature = "stealbackhash", feature = "stealbackvector"))]
     pub fn successfullsteal(&self, id:usize){
         self.queue.add_stealer(id);
-    } 
+    }  //add the ID of a stealer that successfully stole from queue
     
+   
     #[cfg(any(feature = "stealbackhash", feature = "stealbackvector"))]
    pub fn extend_with_workers(&self, candidates: &mut Vec<usize>, id: usize) {
         let guard = self.queue.stealers.lock().expect("failed to lock when stealing");
         candidates.extend(guard.iter().copied().filter(|&x| x != id));
-}
+    }  //Returns given vector with all workers id that are in stealers
 }
 impl <T: Identifiable> Clone for Stealer<T> {
     fn clone(&self) -> Self {

@@ -82,7 +82,7 @@ impl <T: Identifiable + Send + 'static> VelvetWorker <T> {
         let victims = Arc::from(VictimRegistry::new());
 
         #[cfg(feature = "topology")]
-        let mut cores1: HashMap<u32, usize> = HashMap::new();
+        let mut cores1: HashMap<u32, usize> = HashMap::new(); //Map worker Id to corresponding core_id
         
         for id in 0..num_workers {
             workers.push(Self::new(id, queue_size, done.clone(), barrier.clone(), steal, #[cfg(any(feature = "register", feature = "hashing_register"))]
@@ -202,11 +202,6 @@ impl <T: Identifiable + Send + 'static> VelvetWorker <T> {
                 root_worker.set_cpuset(ids);
             }
                        
-        }
-        
-        #[cfg(any(feature = "stealbackhash", feature = "stealbackvector"))]
-        {  
-            stealers[0].set_owner(0,0);
         }
         
         root_worker

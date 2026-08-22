@@ -102,6 +102,8 @@ pub fn generate_frame_enum(funcs: &Vec<FuncEntry>) -> TokenStream {
 */
 pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
     let specific_steal_logic = generate_steal_logic(funcs);    
+    
+    //Steal-back, steal-back hashing, steal-back mugging
     #[cfg(any(feature = "stealbackhash", feature = "stealbackvector"))]
     quote!{
         fn __velvet_steal__(worker: &mut velvet::VelvetWorker<__Frame__>) {
@@ -112,7 +114,7 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
             let len = worker.stealers.len();
             let mut stealback = false;
            
-           
+            
             #[cfg(feature = "hashing")]
             let mut target: Option<usize> = None;
             #[cfg(feature = "hashing")]
@@ -121,6 +123,8 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
             let mut candidates: Vec<usize> = Vec::new();
 
           
+            
+            //Calculate the target for the hashing approach
             #[cfg(feature = "hashing")]
             let mut ensure_target = |worker: &velvet::VelvetWorker<__Frame__>| -> Option<usize> {
                 if !target_computed {
@@ -140,6 +144,8 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
                 target
             };
 
+
+            //From the target, take all workers working on targets work, pick victim
             #[cfg(feature = "hashing")]
             let mut pick_hashed = |worker: &velvet::VelvetWorker<__Frame__>,
                                 victim: usize,
@@ -151,10 +157,11 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
                 candidates[worker.get_random_withself(candidates.len())]
             };
 
-            // Compute `candidates` once (lazily) and reuse the buffer on every retry.
             
             let has_owner = worker.stealers[_id].get_owner().is_some();
 
+            //If worker.steal_back return something take that as victim, an toggle stealback to true
+            //Else if not hashing select random victim, if hashing select victim from target
             let mut n = match worker.steal_back() {
                 Some(i) => {
                     stealback = true;
@@ -191,13 +198,14 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
                 let stealer = worker.stealers[n].clone();
                 #[cfg(feature = "mugging")]
                 {
+                    //stealback all task from victim if stealback is  true
                     if stealback{           
                         let mut amount_task = stealer.length();
 
-                        #[cfg(feature = "stats")]
-                        let mut first = true;
+                        
+                        let mut first = true; //makes sure only the first stolen task is counted for the wait time
 
-                        for _task in 0..amount_task{
+                        while amount_task != 0{
                             let result_slot_mugging = std::sync::Arc::new(std::sync::Mutex::new(None));
                             let mut lock = result_slot_mugging.lock().unwrap();
                             
@@ -206,13 +214,13 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
                             
                             #[cfg(feature = "stats")]
                             worker.add_steal_attempts(1);
-                            if let Some(frame) = maybe_frame {
-                                
+                            
+                            if let Some(frame) = maybe_frame {     
                                 #[cfg(feature = "stats")]
                                 {
                                     if first{
                                         worker.add_steal_waittime(__steal_start.elapsed());
-                                    }
+                                    } //only when it is the first stolen task 
                                 }
                                 
                                 match frame {
@@ -223,15 +231,24 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
                                     worker.add_successful_steals(1);
                                     if first{
                                         worker.add_successful_stealback(1);
-                                        first = false;
-                                    }
+                                    } //only when it is the first stolen task
+                                }
+
+                                if first{
+                                    first = false; //steal attempt is successfull thus first can be false
                                 }
         
                             }
-                            amount_task = stealer.length();   
+                            amount_task = stealer.length(); //recalculate the length of victims work-queue 
+                        }
+                        
+                        //if a stealattempt wwas successfull return
+                        if !first{
+                            return;
                         }
 
                         worker.unsuccessfullsteal(n);
+                        
                         n = match worker.steal_back() {
                             Some(i) => {
                                 stealback = true;
@@ -259,14 +276,18 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
                     #[cfg(feature = "stats")]
                     worker.add_steal_waittime(__steal_start.elapsed());
 
+                    //If it is not a stealback attempt, set the owner of the worker to the right owner
                     if !stealback {
                         match worker.stealers[n].get_owner() {
+                            //victim has an owner, working on stolen tasks
                             Some(i) => {
                                 worker.stealers[i].successfullsteal(_id);
                                 worker.stealers[_id].set_owner(i, _id);
                             },
+                            //victim working on own task
                             None => {
                                 worker.stealers[n].successfullsteal(_id);
+                                //if victim is 0, set owner to themself
                                 if n != 0 {
                                     worker.stealers[_id].set_owner(n, _id);
                                 } else {
@@ -289,6 +310,9 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
                     return;
                 }
 
+                //New victim selection
+                //if Stealback is true, first try again to stealback work
+                //else try to select random victim, or hashing
                 if stealback {
                     worker.unsuccessfullsteal(n);
                     n = match worker.steal_back() {
@@ -320,10 +344,13 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
                 } else if !has_owner {
                     n = 0;
                 } else {
+                    
+                    //random victim
                     #[cfg(not(any(feature = "hashing", feature ="hashing_register")))]
                     {
                         n = (n+1)%len; 
                     }
+                    //hashing normal
                     #[cfg(feature = "hashing")]
                     {
                         n = match ensure_target(worker) {
@@ -331,6 +358,8 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
                             None => worker.get_random(len),
                         };
                     }
+
+                    //hashing register
                     #[cfg(feature = "hashing_register")]
                     {
                         if let Some(victim) = worker.get_victim(){
@@ -348,7 +377,7 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
     }
 
     
-    
+    //topology-aware and topology-aware priority approach
     #[cfg(all(not(feature = "stealbackvector"), not(feature = "stealbackhash"), feature = "topology"))]
     quote!{
         fn __velvet_steal__(worker: &mut velvet::VelvetWorker<__Frame__>) {
@@ -363,15 +392,17 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
             let mut n;
             let result_slot = std::sync::Arc::new(std::sync::Mutex::new(None));  
             let mut lock = result_slot.lock().unwrap();
+            //check if cpuset is given to worker (workers are pinned), if not fall back to random approach
             match coreid{
                 Some(ids) => {
                     let cores = &ids;
-                    let amount = cores.len();
+                    let amount = cores.len(); //amount of potential victim on same NUMA node
                                     
                     #[cfg(feature = "priority")]
                     {
                         let mut victim: Option<usize> = None;
                         let mut size = 0;
+                        //get victim with most number of tasks
                         for i in 0.. amount{
                             let len = stealers[i].length();
                             if  len > size{
@@ -379,7 +410,7 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
                                 size = len;
                             }
                         }
-                
+                        //if there is a victim --> steal attempt
                         if let Some(v) = victim {
                             let stealer = worker.stealers[v].clone();
                             let maybe_frame = stealer.steal(__Frame__::Stolen(result_slot.clone()));
@@ -400,13 +431,16 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
                             }
                         }
                     }
+
                     let stealers = worker.stealers.clone();
                     let mut tried: Vec<usize> = Vec::new();
                     n = worker.get_random_withself(amount);
                     for _i in 0.. amount{   
                         let id = &cores[n];                      
-                        if id != _id {
+                        //make sure not to try steal from woker itself
+                        if *id != _id {
                             let stealer  = worker.stealers[*id].clone();
+                            //Check if victim has enough tasks in work-queueu for steal attempt
                             if stealer.ready(){  
                                 let maybe_frame =
                                     stealer.steal(__Frame__::Stolen(result_slot.clone()));
@@ -429,11 +463,16 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
                                 
                                 }     
                             }
+                            
                             tried.push(*id);
                         }
+
                         n = (n+1)%amount; 
                     }
+
+                    //random work stealing, first check if victim is not already tried before
                     n = worker.get_random(len);
+                    
                     for _i in 0..len {
                         if !(tried.contains(&n)){
                             let stealer = worker.stealers[n].clone();
@@ -492,7 +531,9 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
             worker.add_steal_waittime(__steal_start.elapsed());   
         }
     }
-     #[cfg(all(not(feature = "stealbackvector"), not(feature = "stealbackhash"), not(feature = "topology"), feature = "register"))]
+
+    //VictimRegister approach
+    #[cfg(all(not(feature = "stealbackvector"), not(feature = "stealbackhash"), not(feature = "topology"), feature = "register"))]
     quote!{
         fn __velvet_steal__(worker: &mut velvet::VelvetWorker<__Frame__>) {
             #[cfg(feature = "stats")]
@@ -502,14 +543,11 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
             let stealers = &worker.stealers;
             let len = stealers.len();  
             
-
-            //let result_slot = std::sync::Arc::new(std::sync::Mutex::new(None));  
-            //let mut lock = result_slot.lock().unwrap();             
+            let result_slot = std::sync::Arc::new(std::sync::Mutex::new(None));
+            let mut lock = result_slot.lock().unwrap();          
+            
             for _ in 0..len{
-                let result_slot = std::sync::Arc::new(std::sync::Mutex::new(None));
-                let mut lock = result_slot.lock().unwrap();
-                
-                if let Some(target) = worker.get_victim(){
+                  if let Some(target) = worker.get_victim(){
                     let maybe_frame = worker.stealers[target].steal(__Frame__::Stolen(result_slot.clone())); 
                     
                     #[cfg(feature = "stats")]
@@ -541,7 +579,7 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
         }
     }
 
-
+    //Random, Random Priority, and Random Mugging
      #[cfg(all(not(feature = "topology"), not(feature = "stealbackvector"), not(feature = "stealbackhash"),  not(feature = "register")))]
     quote!{
         fn __velvet_steal__(worker: &mut velvet::VelvetWorker<__Frame__>) {
@@ -552,7 +590,7 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
             let stealers = &worker.stealers;
             let len = stealers.len();  
             let mut n = worker.get_random(len);
-            let result_slot = std::sync::Arc::new(std::sync::Mutex::new(None));  
+            let result_slot = std::sync::Arc::new(std::sync::Mutex::new(None::<__Frame__>));  
             let mut lock = result_slot.lock().unwrap();
 
             #[cfg(feature = "priority")]
@@ -581,9 +619,7 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
                             #specific_steal_logic
                         }
                         #[cfg(feature = "stats")]
-                        worker.add_successful_steals(1);
-                    
-                        
+                        worker.add_successful_steals(1);              
                         return;
                     }
                 }
@@ -598,11 +634,10 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
                     let stealer = worker.stealers[n].clone();
                     let mut amount_task = stealer.length();
 
-                    #[cfg(feature = "stats")]
                     let mut first = true;
 
-                    for _task in 0..amount_task{
-                        let result_slot_mugging = std::sync::Arc::new(std::sync::Mutex::new(None));
+                    while amount_task != 0{
+                        let result_slot_mugging = std::sync::Arc::new(std::sync::Mutex::new(None::<__Frame__>));
                         let mut lock = result_slot_mugging.lock().unwrap();
                         
                         let maybe_frame =
@@ -625,13 +660,17 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
 
                             #[cfg(feature = "stats")]{
                                 worker.add_successful_steals(1);
-                                if first{
-                                    first = false;
-                                }
+                               
+                            }
+                            if first{
+                                first = false;
                             }
     
                         }
                             amount_task = stealer.length();   
+                        }
+                        if !first {
+                            return;
                         }
 
                         n = (n+1)%len; 
@@ -643,9 +682,6 @@ pub fn generate_steal_func(funcs: &Vec<FuncEntry>) -> TokenStream {
             
                     #[cfg(feature = "stats")]{}
                     worker.add_steal_attempts(1);
-                
-                
-                
                     if let Some(frame) = maybe_frame {
                         #[cfg(feature = "stats")]
                         worker.add_steal_waittime(steal_start.elapsed());
