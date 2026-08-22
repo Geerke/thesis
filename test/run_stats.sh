@@ -316,35 +316,35 @@ if [ "$1" = "mugging" ]; then
     output_nqueens="AA_SLURM_OUT/STATS/outmuggingnqueens.$SLURM_JOB_ID"
     output_bh="AA_SLURM_OUT/STATS/outmuggingbh.$SLURM_JOB_ID"
 
-    cargo build --release --no-default-features --features "safe stats  mugging" -p fib
+    cargo build --release --no-default-features --features "safe stats stealbackvector mugging" -p fib
     
     for iter in {1..5}; do
         $executabe_file_fib velvet 50 2>> "$output_fib" >> $dump_file
     done
     
-    cargo build --release --no-default-features --features "safe stats  mugging" -p adapint
+    cargo build --release --no-default-features --features "safe stats  stealbackvector mugging" -p adapint
     for iter in {1..5}; do
         $executabe_file_ada velvet 0.0 800000 0.0001 2>> "$output_ada" >> $dump_file
     done
 
-    cargo build --release --no-default-features --features "safe stats  mugging" -p tsp
+    cargo build --release --no-default-features --features "safe stats stealbackvector mugging" -p tsp
     for iter in {1..5}; do
         $executabe_file_tsp velvet 19 42 2>> "$output_tsp" >> $dump_file
     done
 
 
-    cargo build --release --no-default-features --features "safe stats  mugging" -p matmul
+    cargo build --release --no-default-features --features "safe stats stealbackvector  mugging" -p matmul
     for iter in {1..5}; do
         $executabe_file_matmul velvet 9 8 2>> "$output_matmul" >> $dump_file
     done
 
 
-    cargo build --release --no-default-features --features "safe stats  mugging" -p nqueens
+    cargo build --release --no-default-features --features "safe stats stealbackvector mugging" -p nqueens
     for iter in {1..5}; do
         $executabe_file_nqueens velvet 15 2>> "$output_nqueens" >> $dump_file
     done
 
-    cargo build --release --no-default-features --features "safe stats  mugging " -p bh
+    cargo build --release --no-default-features --features "safe stats stealbackvector  mugging " -p bh
     for iter in {1..5}; do
         $executabe_file_bh velvet "/var/scratch/abliokou/bh_data/two_plummers_1M.txt" "AA_SLURM_OUT/BH/output.$SLURM_JOB_ID" 5 2>> "$output_bh" >> $dump_file
     done

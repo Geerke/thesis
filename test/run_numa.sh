@@ -21,44 +21,44 @@ executabe_file_bh="./target/release/bh"
 
 
 if [ "$1" = "topo" ]; then
-    output_fib="AA_SLURM_OUT/NUMA/outtopofib.$SLURM_JOB_ID"
-    output_ada="AA_SLURM_OUT/NUMA/outtopoada.$SLURM_JOB_ID"
-    output_tsp="AA_SLURM_OUT/NUMA/outtopotsp.$SLURM_JOB_ID"
-    output_matmul="AA_SLURM_OUT/NUMA/outtopomatmul.$SLURM_JOB_ID"
-    output_nqueens="AA_SLURM_OUT/NUMA/outtoponqueens.$SLURM_JOB_ID"
-    output_bh="AA_SLURM_OUT/NUMA/outtopobh.$SLURM_JOB_ID"
+    output_fib="AA_SLURM_OUT/NUMA/outtopopriorityfib.$SLURM_JOB_ID"
+    output_ada="AA_SLURM_OUT/NUMA/outtopopriorityada.$SLURM_JOB_ID"
+    output_tsp="AA_SLURM_OUT/NUMA/outtopoprioritytsp.$SLURM_JOB_ID"
+    output_matmul="AA_SLURM_OUT/NUMA/outtopoprioritymatmul.$SLURM_JOB_ID"
+    output_nqueens="AA_SLURM_OUT/NUMA/outtopoprioritynqueens.$SLURM_JOB_ID"
+    output_bh="AA_SLURM_OUT/NUMA/outtopoprioritybh.$SLURM_JOB_ID"
 
-    cargo build --release --no-default-features --features "safe  topology" -p fib
+    cargo build --release --no-default-features --features "safe  topology priority" -p fib
     perf stat --repeat 5 -e ls_refills_from_sys.ls_mabresp_lcl_dram,ls_refills_from_sys.ls_mabresp_rmt_dram \
     -o $output_fib \
     $executabe_file_fib velvet 50
 
     
-    cargo build --release --no-default-features --features "safe  topology" -p adapint
+    cargo build --release --no-default-features --features "safe  topology priority" -p adapint
     perf stat --repeat 5 -e ls_refills_from_sys.ls_mabresp_lcl_dram,ls_refills_from_sys.ls_mabresp_rmt_dram \
     -o $output_ada \
     $executabe_file_ada velvet 0.0 800000 0.0001
 
-    cargo build --release --no-default-features --features "safe  topology" -p tsp
+    cargo build --release --no-default-features --features "safe  topology priority" -p tsp
     perf stat --repeat 5 -e ls_refills_from_sys.ls_mabresp_lcl_dram,ls_refills_from_sys.ls_mabresp_rmt_dram \
     -o $output_tsp \
     $executabe_file_tsp velvet 19 42
 
 
-    cargo build --release --no-default-features --features "safe  topology" -p matmul
+    cargo build --release --no-default-features --features "safe  topology priority" -p matmul
     perf stat --repeat 5 -e ls_refills_from_sys.ls_mabresp_lcl_dram,ls_refills_from_sys.ls_mabresp_rmt_dram \
     -o $output_matmul \
     $executabe_file_matmul velvet 8 16 
 
 
-    cargo build --release --no-default-features --features "safe  topology" -p nqueens
+    cargo build --release --no-default-features --features "safe  topology priority" -p nqueens
     perf stat --repeat 5 -e ls_refills_from_sys.ls_mabresp_lcl_dram,ls_refills_from_sys.ls_mabresp_rmt_dram\
     -o $output_nqueens \
     $executabe_file_nqueens velvet 15
 
 
 
-    cargo build --release --no-default-features --features "safe  topology" -p bh
+    cargo build --release --no-default-features --features "safe  topology priority" -p bh
     perf stat --repeat 5 -e ls_refills_from_sys.ls_mabresp_lcl_dram,ls_refills_from_sys.ls_mabresp_rmt_dram \
     -o $output_bh \
     $executabe_file_bh velvet "/var/scratch/abliokou/bh_data/two_plummers_1M.txt" "AA_SLURM_OUT/BH/output.$SLURM_JOB_ID" 5
@@ -100,8 +100,6 @@ if [ "$1" = "random" ]; then
     perf stat --repeat 5 -e ls_refills_from_sys.ls_mabresp_lcl_dram,ls_refills_from_sys.ls_mabresp_rmt_dram\
     -o $output_nqueens \
     $executabe_file_nqueens velvet 15
-
-
 
     cargo build --release --no-default-features --features "safe " -p bh
     perf stat --repeat 5 -e ls_refills_from_sys.ls_mabresp_lcl_dram,ls_refills_from_sys.ls_mabresp_rmt_dram \
